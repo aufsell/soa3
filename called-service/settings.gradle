@@ -1,0 +1,4 @@
+rootProject.name = 'called-service'
+
+include 'called-ejb'
+include 'called-web'

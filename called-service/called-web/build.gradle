@@ -1,0 +1,16 @@
+plugins {
+  id 'java'
+  id 'war'
+}
+
+dependencies {
+  // зависимость на EJB-модуль
+  implementation project(':called-ejb')
+
+  // Jakarta EE Web API (Servlet+JAX-RS)
+  compileOnly 'jakarta.platform:jakarta.jakartaee-web-api:10.0.0'
+}
+
+war {
+  archiveBaseName = 'called-web'
+}

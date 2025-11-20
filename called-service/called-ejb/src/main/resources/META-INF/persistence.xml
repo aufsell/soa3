@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             version="3.0">
+    <persistence-unit name="calledPU" transaction-type="JTA">
+        <jta-data-source>java:global/jdbc/calledDS</jta-data-source>
+
+        <properties>
+            <!-- для dev: на каждом старте пересоздавать схему -->
+            <property name="jakarta.persistence.schema-generation.database.action"
+                      value="none"/>
+            <!-- если хочешь только создавать/обновлять:
+                 create  / update -->
+        </properties>
+    </persistence-unit>
+</persistence>
