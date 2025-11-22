@@ -7,8 +7,8 @@ services:
     restart: unless-stopped
     command: agent -dev -client=0.0.0.0 -dns-port=53
     ports:
-      - "8500:8500"        # UI / HTTP API
-      - "8600:8600/udp"    # (можно оставить, если хочешь снаружи DNS дергать отдельно)
+      - "8500:8500"        
+      - "8600:8600/udp"    
     networks:
       app-net:
         ipv4_address: 172.30.0.10

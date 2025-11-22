@@ -1,5 +1,5 @@
 server:
-  port: 0  # любой свободный
+  port: 0
 
 eureka:
   client:
