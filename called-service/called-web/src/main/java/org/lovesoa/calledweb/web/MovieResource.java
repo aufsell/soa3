@@ -5,9 +5,7 @@ import jakarta.ejb.EJB;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.lovesoa.calledejb.dtos.MovieCreateRequest;
-import org.lovesoa.calledejb.dtos.MoviePutListDTORequest;
-import org.lovesoa.calledejb.dtos.MovieResponseDTO;
+import org.lovesoa.calledejb.dtos.*;
 import org.lovesoa.calledejb.models.Movie;
 import org.lovesoa.calledejb.service.api.MovieServiceRemote;
 
@@ -42,6 +40,13 @@ public class MovieResource {
     public Response deleteMovie(@PathParam("id") Long id) {
         movieService.deleteMovie(id);
 
-        return Response.noContent().build(); // HTTP 204 No Content
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/search")
+    public PageDTO<MovieResponseDTO> search(MovieSearchRequest request) {
+        if (request == null) request = new MovieSearchRequest();
+        return movieService.searchMovies(request);
     }
 }

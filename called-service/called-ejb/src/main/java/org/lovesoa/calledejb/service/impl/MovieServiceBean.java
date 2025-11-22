@@ -7,16 +7,17 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import org.lovesoa.calledejb.dtos.*;
 import org.lovesoa.calledejb.models.*;
 import org.lovesoa.calledejb.service.api.MovieServiceRemote;
+import org.lovesoa.calledejb.service.util.ParserDTO;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.lovesoa.calledejb.service.util.ParserDTO.MovietoDTO;
 
@@ -173,4 +174,165 @@ public class MovieServiceBean  implements MovieServiceRemote {
 
         em.remove(movie);
     }
+
+    @Override
+    public PageDTO<MovieResponseDTO> searchMovies(MovieSearchRequest request) {
+
+        Map<String, Object> filters =
+                request.getFilters() != null ? request.getFilters() : Map.of();
+
+        List<String> sort =
+                request.getSort() != null ? request.getSort() : List.of();
+
+        int page = request.getPage() != null ? request.getPage() : 0;
+        int size = request.getSize() != null ? request.getSize() : 20;
+
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Movie> cq = cb.createQuery(Movie.class);
+        Root<Movie> root = cq.from(Movie.class);
+
+        Map<String, From<?, ?>> joins = new HashMap<>();
+        joins.put("root", root);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : filters.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            int i1 = key.indexOf("[");
+            int i2 = key.indexOf("]");
+            if (i1 < 0 || i2 < 0) continue;
+
+            String fieldPath = key.substring(0, i1);
+            String op = key.substring(i1 + 1, i2);
+
+            Path<?> path = getPath(root, joins, fieldPath);
+            Predicate p = buildPredicate(cb, path, op, value);
+            if (p != null) predicates.add(p);
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+
+        if (!sort.isEmpty()) {
+            List<Order> orders = new ArrayList<>();
+            for (String s : sort) {
+                String[] parts = s.split(":");
+                if (parts.length != 2) continue;
+
+                Path<?> path = getPath(root, joins, parts[0]);
+                boolean desc = "desc".equalsIgnoreCase(parts[1]);
+                orders.add(desc ? cb.desc(path) : cb.asc(path));
+            }
+            cq.orderBy(orders);
+        }
+
+        int pageNumber = Math.max(page, 0);
+        int pageSize = Math.min(Math.max(size, 1), 100);
+
+        List<Movie> result = em.createQuery(cq)
+                .setFirstResult(pageNumber * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
+
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<Movie> countRoot = countQuery.from(Movie.class);
+        countQuery.select(cb.count(countRoot));
+
+        Map<String, From<?, ?>> joins2 = new HashMap<>();
+        joins2.put("root", countRoot);
+
+        List<Predicate> preds2 = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : filters.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            int i1 = key.indexOf("[");
+            int i2 = key.indexOf("]");
+            if (i1 < 0 || i2 < 0) continue;
+
+            String fieldPath = key.substring(0, i1);
+            String op = key.substring(i1 + 1, i2);
+
+            Path<?> path = getPath(countRoot, joins2, fieldPath);
+            Predicate p = buildPredicate(cb, path, op, value);
+            if (p != null) preds2.add(p);
+        }
+
+        countQuery.where(preds2.toArray(new Predicate[0]));
+
+        long total = em.createQuery(countQuery).getSingleResult();
+
+        PageDTO<MovieResponseDTO> dto = new PageDTO<>();
+        dto.setContent(result.stream().map(ParserDTO::MovietoDTO).toList());
+        dto.setPage(pageNumber);
+        dto.setSize(pageSize);
+        dto.setTotalElements(total);
+        dto.setTotalPages((int) Math.ceil((double) total / pageSize));
+
+        return dto;
+    }
+
+    private Path<?> getPath(From<?, ?> root, Map<String, From<?, ?>> joins, String fieldPath) {
+        String[] parts = fieldPath.split("\\.");
+        From<?, ?> current = root;
+        StringBuilder key = new StringBuilder();
+
+        for (int i = 0; i < parts.length - 1; i++) {
+            key.append(parts[i]);
+            String joinKey = key.toString();
+
+            if (!joins.containsKey(joinKey)) {
+                current = current.join(parts[i], JoinType.LEFT);
+                joins.put(joinKey, current);
+            } else {
+                current = joins.get(joinKey);
+            }
+
+            key.append(".");
+        }
+
+        return current.get(parts[parts.length - 1]);
+    }
+
+    private Predicate buildPredicate(
+            CriteriaBuilder cb, Path<?> path, String operator, Object value
+    ) {
+        Class<?> javaType = path.getJavaType();
+
+        switch (operator.toLowerCase()) {
+            case "eq": return cb.equal(path, value);
+            case "ne": return cb.notEqual(path, value);
+            case "gt":
+                return numberOp(cb, path, value, "gt");
+            case "lt":
+                return numberOp(cb, path, value, "lt");
+            case "gte":
+                return numberOp(cb, path, value, "gte");
+            case "lte":
+                return numberOp(cb, path, value, "lte");
+            case "in":
+                if (value instanceof Collection<?> c) return path.in(c);
+                if (value.getClass().isArray()) return path.in(Arrays.asList((Object[]) value));
+                break;
+        }
+        throw new IllegalArgumentException("Unsupported operator: " + operator);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Predicate numberOp(CriteriaBuilder cb, Path<?> path, Object value, String op) {
+        Number num = (Number) value;
+        Path<? extends Number> n = (Path<? extends Number>) path;
+
+        return switch (op) {
+            case "gt" -> cb.gt(n, num);
+            case "lt" -> cb.lt(n, num);
+            case "gte" -> cb.ge(n, num);
+            case "lte" -> cb.le(n, num);
+            default -> null;
+        };
+    }
+
+
+
 }
