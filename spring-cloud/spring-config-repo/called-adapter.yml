@@ -5,6 +5,9 @@ spring:
   application:
     name: called-adapter
 
+  gateway:
+    url: http://api-gateway:8080
+
   autoconfigure:
     exclude:
       - org.springframework.cloud.consul.serviceregistry.ConsulAutoServiceRegistrationAutoConfiguration

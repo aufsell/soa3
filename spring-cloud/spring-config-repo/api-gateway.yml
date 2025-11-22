@@ -11,34 +11,31 @@ spring:
 
   cloud:
     discovery:
-      enabled: true   # чтобы gateway использовал всех discovery-клиентов (Eureka + Consul)
+      enabled: true
 
     consul:
-      host: called-consul   # имя сервиса consul из docker-compose
+      host: called-consul
       port: 8500
       discovery:
         enabled: true
-        register: false     # gateway сам в Consul не регистрируем, он только клиент
+        register: false
 
     gateway:
       discovery:
         locator:
-          enabled: true     # чтобы можно было ходить по lb://serviceId
+          enabled: true
+
       routes:
-        # 1) route на caller-service по serviceId (через Eureka)
         - id: caller-service
           uri: lb://caller-service
           predicates:
             - Path=/caller/**
 
-        # 2) route на Payara через Consul + LoadBalancer
         - id: payara
-          uri: lb://called-service     # ВАЖНО: имя сервиса в Consul
+          uri: http://called-service.service.consul:8080
           predicates:
             - Path=/called/**
-          filters:
-            # /payara/foo → /foo на Payara
-#            - RewritePath=/called/(?<segment>.*), /${segment}
+
 
 eureka:
   client:
@@ -46,4 +43,3 @@ eureka:
       defaultZone: http://eureka-server:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-
