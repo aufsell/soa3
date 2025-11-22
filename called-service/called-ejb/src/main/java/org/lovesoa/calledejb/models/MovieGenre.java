@@ -1,6 +1,8 @@
 package org.lovesoa.calledejb.models;
 
-public enum MovieGenre {
+import java.io.Serializable;
+
+public enum MovieGenre  implements Serializable {
     DRAMA,
     MUSICAL,
     THRILLER,

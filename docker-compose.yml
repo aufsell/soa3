@@ -15,33 +15,33 @@ services:
       - "8080:8080"
       - "4848:4848"
 
-  payara-2:
-    image: payara/server-full:6.2024.3-jdk17
-    container_name: payara-2
-    restart: unless-stopped
-    environment:
-      - SERVICE_ID=payara-2
-      - SERVICE_ADDRESS=payara-2
-      - SERVICE_PORT=8080
-    depends_on:
-      - consul
-    ports:
-      - "8081:8080"
-      - "4849:4848"
+  # payara-2:
+  #   image: payara/server-full:6.2024.3-jdk17
+  #   container_name: payara-2
+  #   restart: unless-stopped
+  #   environment:
+  #     - SERVICE_ID=payara-2
+  #     - SERVICE_ADDRESS=payara-2
+  #     - SERVICE_PORT=8080
+  #   depends_on:
+  #     - consul
+  #   ports:
+  #     - "8081:8080"
+  #     - "4849:4848"
 
-  payara-3:
-    image: payara/server-full:6.2024.3-jdk17
-    container_name: payara-3
-    restart: unless-stopped
-    environment:
-      - SERVICE_ID=payara-3
-      - SERVICE_ADDRESS=payara-3
-      - SERVICE_PORT=8080
-    depends_on:
-      - consul
-    ports:
-      - "8082:8080"
-      - "4850:4848"
+  # payara-3:
+  #   image: payara/server-full:6.2024.3-jdk17
+  #   container_name: payara-3
+  #   restart: unless-stopped
+  #   environment:
+  #     - SERVICE_ID=payara-3
+  #     - SERVICE_ADDRESS=payara-3
+  #     - SERVICE_PORT=8080
+  #   depends_on:
+  #     - consul
+  #   ports:
+  #     - "8082:8080"
+  #     - "4850:4848"
 
   postgres:
     image: postgres:16-alpine
