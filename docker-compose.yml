@@ -11,7 +11,7 @@ services:
       - "8600:8600/udp"    # (можно оставить, если хочешь снаружи DNS дергать отдельно)
     networks:
       app-net:
-        ipv4_address: 172.20.0.10
+        ipv4_address: 172.30.0.10
 
   payara-1:
     image: payara/server-full:6.2024.3-jdk17
@@ -78,9 +78,9 @@ services:
       - consul
     networks:
       app-net:
-        ipv4_address: 172.20.0.11
+        ipv4_address: 172.30.0.11
     dns:
-      - 172.20.0.10
+      - 172.30.0.10
 
   called-adapter-1:
     build: ./spring-cloud/called-adapter
@@ -122,4 +122,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.30.0.0/16
