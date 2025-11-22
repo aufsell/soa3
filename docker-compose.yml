@@ -1,6 +1,18 @@
 version: "3.9"
 
 services:
+  consul:
+    image: consul:1.15.4
+    container_name: called-consul
+    restart: unless-stopped
+    command: agent -dev -client=0.0.0.0 -dns-port=53
+    ports:
+      - "8500:8500"        # UI / HTTP API
+      - "8600:8600/udp"    # (можно оставить, если хочешь снаружи DNS дергать отдельно)
+    networks:
+      app-net:
+        ipv4_address: 172.20.0.10
+
   payara-1:
     image: payara/server-full:6.2024.3-jdk17
     container_name: payara-1
@@ -14,62 +26,23 @@ services:
     ports:
       - "8080:8080"
       - "4848:4848"
-
-  # payara-2:
-  #   image: payara/server-full:6.2024.3-jdk17
-  #   container_name: payara-2
-  #   restart: unless-stopped
-  #   environment:
-  #     - SERVICE_ID=payara-2
-  #     - SERVICE_ADDRESS=payara-2
-  #     - SERVICE_PORT=8080
-  #   depends_on:
-  #     - consul
-  #   ports:
-  #     - "8081:8080"
-  #     - "4849:4848"
-
-  # payara-3:
-  #   image: payara/server-full:6.2024.3-jdk17
-  #   container_name: payara-3
-  #   restart: unless-stopped
-  #   environment:
-  #     - SERVICE_ID=payara-3
-  #     - SERVICE_ADDRESS=payara-3
-  #     - SERVICE_PORT=8080
-  #   depends_on:
-  #     - consul
-  #   ports:
-  #     - "8082:8080"
-  #     - "4850:4848"
+    networks:
+      app-net:
 
   postgres:
     image: postgres:16-alpine
     container_name: called-postgres
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: called_db
       POSTGRES_USER: called_user
       POSTGRES_PASSWORD: called_pass
-
     ports:
       - "5432:5432"
-
     volumes:
       - pgdata:/var/lib/postgresql/data
-
-  consul:
-    image: consul:1.15.4
-    container_name: called-consul
-    restart: unless-stopped
-    command: agent -dev -client=0.0.0.0
-    ports:
-      - "8500:8500"
-
-  # =========================
-  #   SPRING CLOUD СТЕК
-  # =========================
+    networks:
+      app-net:
 
   config-server:
     build: ./spring-cloud/config-server
@@ -79,6 +52,8 @@ services:
       - "8888:8888"
     volumes:
       - ./spring-cloud/spring-config-repo:/config-repo
+    networks:
+      app-net:
 
   eureka-server:
     build: ./spring-cloud/eureka-server
@@ -88,6 +63,8 @@ services:
       - "8761:8761"
     depends_on:
       - config-server
+    networks:
+      app-net:
 
   api-gateway:
     build: ./spring-cloud/api-gateway
@@ -98,6 +75,12 @@ services:
     depends_on:
       - config-server
       - eureka-server
+      - consul
+    networks:
+      app-net:
+        ipv4_address: 172.20.0.11
+    dns:
+      - 172.20.0.10
 
   called-adapter-1:
     build: ./spring-cloud/called-adapter
@@ -106,6 +89,8 @@ services:
     depends_on:
       - config-server
       - eureka-server
+    networks:
+      app-net:
 
   called-adapter-2:
     build: ./spring-cloud/called-adapter
@@ -114,7 +99,8 @@ services:
     depends_on:
       - config-server
       - eureka-server
-
+    networks:
+      app-net:
 
   caller-service:
     build: ./spring-cloud/caller-service
@@ -124,8 +110,16 @@ services:
       - config-server
       - eureka-server
       - called-adapter-1
-
+    networks:
+      app-net:
 
 volumes:
   payara-domain:
   pgdata:
+
+networks:
+  app-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
