@@ -7,13 +7,15 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "persons")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Person {
+public class Person implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

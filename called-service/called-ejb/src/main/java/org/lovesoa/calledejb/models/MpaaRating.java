@@ -1,6 +1,8 @@
 package org.lovesoa.calledejb.models;
 
-public enum MpaaRating {
+import java.io.Serializable;
+
+public enum MpaaRating  implements Serializable {
     PG,
     R,
     NC_17
