@@ -67,6 +67,65 @@ services:
     ports:
       - "8500:8500"
 
+  # =========================
+  #   SPRING CLOUD СТЕК
+  # =========================
+
+  config-server:
+    build: ./spring-cloud/config-server
+    container_name: config-server
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./spring-cloud/spring-config-repo:/config-repo
+
+  eureka-server:
+    build: ./spring-cloud/eureka-server
+    container_name: eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+
+  api-gateway:
+    build: ./spring-cloud/api-gateway
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    depends_on:
+      - config-server
+      - eureka-server
+
+  called-adapter-1:
+    build: ./spring-cloud/called-adapter
+    container_name: called-adapter-1
+    restart: unless-stopped
+    depends_on:
+      - config-server
+      - eureka-server
+
+  called-adapter-2:
+    build: ./spring-cloud/called-adapter
+    container_name: called-adapter-2
+    restart: unless-stopped
+    depends_on:
+      - config-server
+      - eureka-server
+
+
+  caller-service:
+    build: ./spring-cloud/caller-service
+    container_name: caller-service
+    restart: unless-stopped
+    depends_on:
+      - config-server
+      - eureka-server
+      - called-adapter-1
+
+
 volumes:
   payara-domain:
   pgdata:
