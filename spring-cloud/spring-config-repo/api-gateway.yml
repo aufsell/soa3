@@ -33,12 +33,12 @@ spring:
 
         # 2) route на Payara через Consul + LoadBalancer
         - id: payara
-          uri: lb://caller-service     # ВАЖНО: имя сервиса в Consul
+          uri: lb://called-service     # ВАЖНО: имя сервиса в Consul
           predicates:
-            - Path=/payara/**
+            - Path=/called/**
           filters:
             # /payara/foo → /foo на Payara
-            - RewritePath=/payara/(?<segment>.*), /${segment}
+#            - RewritePath=/called/(?<segment>.*), /${segment}
 
 eureka:
   client:
@@ -46,3 +46,4 @@ eureka:
       defaultZone: http://eureka-server:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+
