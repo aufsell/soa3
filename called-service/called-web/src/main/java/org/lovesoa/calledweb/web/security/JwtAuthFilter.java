@@ -22,7 +22,7 @@ public class JwtAuthFilter implements ContainerRequestFilter {
         System.out.println("Request path: " + path);
 
         // /api/auth/** пропускаем без проверки
-        if (path.startsWith("auth/") || path.equals("health")) {
+        if (path.startsWith("auth/") || path.equals("health") || path.equals("ping")) {
             return;
         }
 
