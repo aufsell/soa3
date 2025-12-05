@@ -15,14 +15,22 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpMethod;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Service
 public class MoviesClient {
 
+
+    @PostConstruct
+    public void logSslProps() {
+        System.out.println("### javax.net.ssl.trustStore = " + System.getProperty("javax.net.ssl.trustStore"));
+        System.out.println("### javax.net.ssl.trustStoreType = " + System.getProperty("javax.net.ssl.trustStoreType"));
+    }
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private String gatewayBaseUrl = "http://api-gateway:8080";
+    private String gatewayBaseUrl = "https://api-gateway:8443";
 
     public MoviesClient(
             RestTemplate restTemplate,

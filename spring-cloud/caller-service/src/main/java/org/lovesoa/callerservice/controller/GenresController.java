@@ -80,7 +80,7 @@ public class GenresController {
             randomMovie.setOscarsCount(randomMovie.getOscarsCount() + 1);
         }
         allMovies.addAll(toMovies);
-        
+
         moviesClient.updateMoviesBatch(allMovies, token);
 
         RedistributeRewardsResponseDTO response = new RedistributeRewardsResponseDTO();
