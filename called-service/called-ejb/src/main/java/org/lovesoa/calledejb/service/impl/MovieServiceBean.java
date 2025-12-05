@@ -300,6 +300,12 @@ public class MovieServiceBean  implements MovieServiceRemote {
     ) {
         Class<?> javaType = path.getJavaType();
 
+        if (javaType.isEnum() && value instanceof String s) {
+            @SuppressWarnings("unchecked")
+            Object enumValue = Enum.valueOf((Class<Enum>) javaType, s.toUpperCase());
+            value = enumValue;
+        }
+
         switch (operator.toLowerCase()) {
             case "eq": return cb.equal(path, value);
             case "ne": return cb.notEqual(path, value);

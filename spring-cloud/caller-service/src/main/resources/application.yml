@@ -3,3 +3,6 @@ spring:
     name: caller-service
   config:
     import: "configserver:http://config-server:8888"
+
+  gateway:
+    url: http://api-gateway:8088
