@@ -35,6 +35,12 @@ public class MovieResource {
         return movieService.updateMovies(request);
     }
 
+    @PUT
+    @Path("/{id}")
+    public MovieResponseDTO updateMovie(@PathParam("id") Long id, MovieUpdateRequest request) {
+        return movieService.singleMovieUpdate(id, request);
+    }
+
     @DELETE
     @Path("/{id}")
     public Response deleteMovie(@PathParam("id") Long id) {

@@ -12,6 +12,7 @@ public interface MovieServiceRemote {
     public MovieResponseDTO createMovie(MovieCreateRequest request);
     public MovieResponseDTO getMovieById(Long id);
     public List<MovieResponseDTO> updateMovies(MoviePutListDTORequest request);
+    public MovieResponseDTO singleMovieUpdate(Long id, MovieUpdateRequest request);
     public void deleteMovie(Long id);
     public PageDTO<MovieResponseDTO> searchMovies(MovieSearchRequest request);
 }

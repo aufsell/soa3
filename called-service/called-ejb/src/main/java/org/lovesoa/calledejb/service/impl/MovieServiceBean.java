@@ -93,6 +93,20 @@ public class MovieServiceBean  implements MovieServiceRemote {
     }
 
     @Transactional
+    public MovieResponseDTO singleMovieUpdate(Long id, MovieUpdateRequest request){
+        MovieCreateRequest movieCreateRequest = new MovieCreateRequest();
+        movieCreateRequest.setName(request.getName());
+        movieCreateRequest.setOscarsCount(request.getOscarsCount());
+        movieCreateRequest.setMpaaRating(request.getMpaaRating());
+        movieCreateRequest.setCoordinates(request.getCoordinates());
+        movieCreateRequest.setGenre(request.getGenre());
+        movieCreateRequest.setId(id);
+        movieCreateRequest.setOperator(request.getOperator());
+
+        return MovietoDTO(updateMovie(id,movieCreateRequest)) ;
+    }
+
+    @Transactional
     public Movie updateMovie(Long id, MovieCreateRequest request){
 
         Movie movie = getMovie(id);
