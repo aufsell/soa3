@@ -12,6 +12,22 @@ services:
       app-net:
         ipv4_address: 172.20.0.10
 
+  payara-2:
+    build: ./payara2
+    # image: payara/server-full:6.2024.3-jdk17
+    container_name: payara-2
+    restart: unless-stopped
+    environment:
+      - SERVICE_ID=payara-2
+      - SERVICE_ADDRESS=payara-2
+      - SERVICE_PORT=8080
+    depends_on:
+      - consul
+    ports:
+      - "4949:4848"
+    networks:
+      app-net:
+
   payara-1:
     image: payara/server-full:6.2024.3-jdk17
     container_name: payara-1

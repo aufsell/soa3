@@ -9,14 +9,34 @@ import org.lovesoa.calledejb.dtos.*;
 import org.lovesoa.calledejb.models.Movie;
 import org.lovesoa.calledejb.service.api.MovieServiceRemote;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import java.util.List;
+import java.util.Properties;
 
 @Path("/movies")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class MovieResource {
-    @EJB
+//    @EJB(lookup="corbname:iiop:payara-2:3700#" +"java:global/called-ejb/MovieServiceBean!org.lovesoa.calledejb.service.api.MovieServiceRemote")
     private MovieServiceRemote movieService;
+
+    public MovieResource() {
+        try {
+            Properties props = new Properties();
+            props.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.enterprise.naming.SerialInitContextFactory");
+            props.put(Context.PROVIDER_URL, "iiop://payara-2:3700");
+
+
+            Context ctx = new InitialContext(props);
+            movieService = (MovieServiceRemote) ctx.lookup(
+                    "java:global/called-ejb/MovieServiceBean!org.lovesoa.calledejb.service.api.MovieServiceRemote"
+            );
+
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot lookup remote AuthService", e);
+        }
+    }
 
     @POST
     public MovieResponseDTO createMovie(MovieCreateRequest request) {
@@ -38,6 +58,7 @@ public class MovieResource {
     @PUT
     @Path("/{id}")
     public MovieResponseDTO updateMovie(@PathParam("id") Long id, MovieUpdateRequest request) {
+        System.out.println("Updating movie " + id);
         return movieService.singleMovieUpdate(id, request);
     }
 

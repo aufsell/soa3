@@ -10,7 +10,12 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.lovesoa.calledejb.service.api.AuthServiceRemote;
 import org.lovesoa.calledejb.service.api.HelloServiceRemote;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import java.util.Properties;
 
 @Path("/health")
 @Produces(MediaType.APPLICATION_JSON)
@@ -19,8 +24,28 @@ public class HealthResource {
     @PersistenceContext(unitName = "calledPU")
     private EntityManager em;
 
-    @EJB
     private HelloServiceRemote testService;
+
+
+    public HealthResource() {
+        try {
+            Properties props = new Properties();
+            Context.URL_PKG_PREFIXES
+            props.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.enterprise.naming.SerialInitContextFactory");
+            props.put(Context.PROVIDER_URL, "http-remoting://payara-2:3700");
+
+
+            Context ctx = new InitialContext(props);
+            testService = (HelloServiceRemote) ctx.lookup(
+                    "ejb:/called-ejb/HelloServiceBean!org.lovesoa.calledejb.service.api.HelloServiceRemote"
+            );
+
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot lookup remote AuthService", e);
+        }
+    }
+
+//    @EJB(lookup="corbname:iiop:payara-2:3700#" +"java:global/called-ejb/HelloServiceBean!org.lovesoa.calledejb.service.api.HelloServiceRemote")
 
     @GET
     public Response health() {
