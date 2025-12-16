@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
+  compileOnly 'javax:javaee-api:8.0'
 }
 dependencies {
   implementation("io.jsonwebtoken:jjwt-api:0.11.5")
@@ -11,7 +11,7 @@ dependencies {
   implementation("org.mindrot:jbcrypt:0.4")
   runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
   runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
-  compileOnly 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
+  compileOnly 'javax:javaee-api:8.0'
   implementation 'org.postgresql:postgresql:42.7.2'
 
   compileOnly ('org.projectlombok:lombok:1.18.32')

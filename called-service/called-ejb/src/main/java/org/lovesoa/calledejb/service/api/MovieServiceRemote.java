@@ -1,7 +1,7 @@
 package org.lovesoa.calledejb.service.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.ejb.Remote;
+import javax.ejb.Remote;
 import org.lovesoa.calledejb.dtos.*;
 import org.lovesoa.calledejb.models.Movie;
 

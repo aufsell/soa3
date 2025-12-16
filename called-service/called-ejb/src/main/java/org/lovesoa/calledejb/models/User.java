@@ -1,6 +1,6 @@
 package org.lovesoa.calledejb.models;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.*;
 
 import java.io.Serial;

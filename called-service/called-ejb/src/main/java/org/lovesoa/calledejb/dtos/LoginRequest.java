@@ -1,7 +1,6 @@
 package org.lovesoa.calledejb.dtos;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.*;
 import lombok.*;
 
 @Data

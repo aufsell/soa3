@@ -1,22 +1,23 @@
 package org.lovesoa.calledweb.web;
 
+import javax.naming.NamingException;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
-import jakarta.ejb.EJB;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import org.lovesoa.calledejb.service.api.PingServiceRemote;
+import org.lovesoa.calledweb.web.RemoteClient.RemotePingServiceClient;
+
 
 @Path("/ping")
 @Produces(MediaType.APPLICATION_JSON)
 public class PingResource {
 
-    @EJB
-    private PingServiceRemote pingService;
+    private final RemotePingServiceClient client =
+            new RemotePingServiceClient("payara-2");
 
     @GET
-    public String ping() {
-        return pingService.ping();
+    public String ping() throws NamingException {
+        return client.ping();
 }
 }

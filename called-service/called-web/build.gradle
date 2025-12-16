@@ -4,13 +4,18 @@ plugins {
 }
 
 dependencies {
-  // зависимость на EJB-модуль
   implementation project(':called-ejb')
 
-  // Jakarta EE Web API (Servlet+JAX-RS)
-  compileOnly 'jakarta.platform:jakarta.jakartaee-web-api:10.0.0'
+  compileOnly 'javax:javaee-api:8.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
+
+    implementation('fish.payara.extras:ejb-http-client:5.2022.5') {
+      exclude group: 'org.glassfish.jersey.core', module: 'jersey-client'
+      exclude group: 'org.glassfish.jersey.core', module: 'jersey-common'
+      exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
+      exclude group: 'org.glassfish.jersey.media', module: 'jersey-media-json-binding'
+    }
 }
 
 war {

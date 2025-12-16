@@ -1,7 +1,6 @@
 package org.lovesoa.calledejb.service.impl;
 
-import jakarta.ejb.Stateless;
-import org.lovesoa.calledejb.service.api.HelloServiceRemote;
+import javax.ejb.Stateless;
 import org.lovesoa.calledejb.service.api.PingServiceRemote;
 
 @Stateless

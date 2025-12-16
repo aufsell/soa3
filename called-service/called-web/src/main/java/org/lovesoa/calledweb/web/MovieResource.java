@@ -1,16 +1,19 @@
 package org.lovesoa.calledweb.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.ejb.EJB;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.lovesoa.calledejb.dtos.*;
-import org.lovesoa.calledejb.models.Movie;
-import org.lovesoa.calledejb.service.api.MovieServiceRemote;
 
+import org.lovesoa.calledejb.dtos.*;
+
+import org.lovesoa.calledejb.service.api.MovieServiceRemote;
+import org.lovesoa.calledweb.web.RemoteClient.RemoteHealthServiceClient;
+import org.lovesoa.calledweb.web.RemoteClient.RemoteMovieServiceClient;
+
+import javax.annotation.PostConstruct;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,62 +21,46 @@ import java.util.Properties;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class MovieResource {
-//    @EJB(lookup="corbname:iiop:payara-2:3700#" +"java:global/called-ejb/MovieServiceBean!org.lovesoa.calledejb.service.api.MovieServiceRemote")
-    private MovieServiceRemote movieService;
 
-    public MovieResource() {
-        try {
-            Properties props = new Properties();
-            props.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.enterprise.naming.SerialInitContextFactory");
-            props.put(Context.PROVIDER_URL, "iiop://payara-2:3700");
-
-
-            Context ctx = new InitialContext(props);
-            movieService = (MovieServiceRemote) ctx.lookup(
-                    "java:global/called-ejb/MovieServiceBean!org.lovesoa.calledejb.service.api.MovieServiceRemote"
-            );
-
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot lookup remote AuthService", e);
-        }
-    }
+    private final RemoteMovieServiceClient client =
+            new RemoteMovieServiceClient("payara-2");
 
     @POST
-    public MovieResponseDTO createMovie(MovieCreateRequest request) {
+    public MovieResponseDTO createMovie(MovieCreateRequest request) throws NamingException {
 
-        return movieService.createMovie(request);
+        return client.createMovie(request);
     }
 
     @GET
     @Path("/{id}")
-    public MovieResponseDTO getMovieById(@PathParam("id") Long id) {
-        return movieService.getMovieById(id);
+    public MovieResponseDTO getMovieById(@PathParam("id") Long id) throws NamingException {
+        return client.getMovieById(id);
     }
 
     @PUT
-    public List<MovieResponseDTO> updateMovies(MoviePutListDTORequest request) {
-        return movieService.updateMovies(request);
+    public List<MovieResponseDTO> updateMovies(MoviePutListDTORequest request) throws NamingException {
+        return client.updateMovies(request);
     }
 
     @PUT
     @Path("/{id}")
-    public MovieResponseDTO updateMovie(@PathParam("id") Long id, MovieUpdateRequest request) {
+    public MovieResponseDTO updateMovie(@PathParam("id") Long id, MovieUpdateRequest request) throws NamingException {
         System.out.println("Updating movie " + id);
-        return movieService.singleMovieUpdate(id, request);
+        return client.singleMovieUpdate(id, request);
     }
 
     @DELETE
     @Path("/{id}")
-    public Response deleteMovie(@PathParam("id") Long id) {
-        movieService.deleteMovie(id);
+    public Response deleteMovie(@PathParam("id") Long id) throws NamingException {
+        client.deleteMovie(id);
 
         return Response.noContent().build();
     }
 
     @POST
     @Path("/search")
-    public PageDTO<MovieResponseDTO> search(MovieSearchRequest request) {
+    public PageDTO<MovieResponseDTO> search(MovieSearchRequest request) throws NamingException {
         if (request == null) request = new MovieSearchRequest();
-        return movieService.searchMovies(request);
+        return client.searchMovies(request);
     }
 }

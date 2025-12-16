@@ -1,10 +1,9 @@
 package org.lovesoa.calledweb.web.consul;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.ejb.Singleton;
-import jakarta.ejb.Startup;
-
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -34,19 +33,18 @@ public class ConsulRegistrar {
         try {
             String consulUrl = "http://" + CONSUL_HOST + ":" + CONSUL_PORT + "/v1/agent/service/register";
 
-            String json = """
-                    {
-                      "ID": "%s",
-                      "Name": "%s",
-                      "Address": "%s",
-                      "Port": %d,
-                      "Check": {
-                        "HTTP": "http://%s:%d/called/api/health",
-                        "Interval": "10s",
-                        "Timeout": "2s"
-                      }
-                    }
-                    """.formatted(
+            String json = String.format(
+                    "{\n" +
+                            "  \"ID\": \"%s\",\n" +
+                            "  \"Name\": \"%s\",\n" +
+                            "  \"Address\": \"%s\",\n" +
+                            "  \"Port\": %d,\n" +
+                            "  \"Check\": {\n" +
+                            "    \"HTTP\": \"http://%s:%d/called/api/health\",\n" +
+                            "    \"Interval\": \"10s\",\n" +
+                            "    \"Timeout\": \"2s\"\n" +
+                            "  }\n" +
+                            "}",
                     SERVICE_ID,
                     SERVICE_NAME,
                     SERVICE_ADDRESS,
@@ -54,6 +52,7 @@ public class ConsulRegistrar {
                     SERVICE_ADDRESS,
                     SERVICE_PORT
             );
+
 
             URL url = new URL(consulUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();

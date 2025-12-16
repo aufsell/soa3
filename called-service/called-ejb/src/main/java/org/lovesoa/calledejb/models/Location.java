@@ -1,10 +1,12 @@
 package org.lovesoa.calledejb.models;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+
 import lombok.*;
 
 import java.io.Serializable;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "locations")

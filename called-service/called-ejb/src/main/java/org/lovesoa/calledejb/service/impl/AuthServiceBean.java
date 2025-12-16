@@ -1,9 +1,6 @@
 package org.lovesoa.calledejb.service.impl;
 
-import jakarta.ejb.Stateless;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
+
 import org.lovesoa.calledejb.dtos.AuthResponse;
 import org.lovesoa.calledejb.dtos.LoginRequest;
 import org.lovesoa.calledejb.dtos.RegisterRequest;
@@ -11,6 +8,11 @@ import org.lovesoa.calledejb.models.User;
 import org.lovesoa.calledejb.security.jwt.JwtService;
 import org.lovesoa.calledejb.service.api.AuthServiceRemote;
 import org.mindrot.jbcrypt.BCrypt;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 
 @Stateless
 public class AuthServiceBean implements AuthServiceRemote {

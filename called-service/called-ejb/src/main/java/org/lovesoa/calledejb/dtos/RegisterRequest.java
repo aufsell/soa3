@@ -1,6 +1,6 @@
 package org.lovesoa.calledejb.dtos;
 
-import jakarta.validation.constraints.*;
+import javax.validation.constraints.*;
 import lombok.*;
 
 @Data

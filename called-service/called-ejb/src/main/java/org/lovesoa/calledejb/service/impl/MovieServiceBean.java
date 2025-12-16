@@ -4,13 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.ejb.Stateless;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.*;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.NotFoundException;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.*;
+import javax.transaction.Transactional;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+
 import org.lovesoa.calledejb.dtos.*;
 import org.lovesoa.calledejb.models.*;
 import org.lovesoa.calledejb.service.api.MovieServiceRemote;
@@ -279,7 +281,11 @@ public class MovieServiceBean  implements MovieServiceRemote {
         long total = em.createQuery(countQuery).getSingleResult();
 
         PageDTO<MovieResponseDTO> dto = new PageDTO<>();
-        dto.setContent(result.stream().map(ParserDTO::MovietoDTO).toList());
+        List<MovieResponseDTO> contentList = new ArrayList<>();
+        for (Movie m : result) {
+            contentList.add(ParserDTO.MovietoDTO(m));
+        }
+        dto.setContent(contentList);
         dto.setPage(pageNumber);
         dto.setSize(pageSize);
         dto.setTotalElements(total);
@@ -315,27 +321,30 @@ public class MovieServiceBean  implements MovieServiceRemote {
     ) {
         Class<?> javaType = path.getJavaType();
 
-        if (javaType.isEnum() && value instanceof String s) {
+        if (javaType.isEnum() && value instanceof String) {
             @SuppressWarnings("unchecked")
-            Object enumValue = Enum.valueOf((Class<Enum>) javaType, s.toUpperCase());
+            Object enumValue = Enum.valueOf((Class<Enum>) javaType, ((String) value).toUpperCase());
             value = enumValue;
         }
 
-        switch (operator.toLowerCase()) {
-            case "eq": return cb.equal(path, value);
-            case "ne": return cb.notEqual(path, value);
-            case "gt":
-                return numberOp(cb, path, value, "gt");
-            case "lt":
-                return numberOp(cb, path, value, "lt");
-            case "gte":
-                return numberOp(cb, path, value, "gte");
-            case "lte":
-                return numberOp(cb, path, value, "lte");
-            case "in":
-                if (value instanceof Collection<?> c) return path.in(c);
-                if (value.getClass().isArray()) return path.in(Arrays.asList((Object[]) value));
-                break;
+        if ("eq".equalsIgnoreCase(operator)) {
+            return cb.equal(path, value);
+        } else if ("ne".equalsIgnoreCase(operator)) {
+            return cb.notEqual(path, value);
+        } else if ("gt".equalsIgnoreCase(operator)) {
+            return numberOp(cb, path, value, "gt");
+        } else if ("lt".equalsIgnoreCase(operator)) {
+            return numberOp(cb, path, value, "lt");
+        } else if ("gte".equalsIgnoreCase(operator)) {
+            return numberOp(cb, path, value, "gte");
+        } else if ("lte".equalsIgnoreCase(operator)) {
+            return numberOp(cb, path, value, "lte");
+        } else if ("in".equalsIgnoreCase(operator)) {
+            if (value instanceof Collection) {
+                return path.in((Collection<?>) value);
+            } else if (value.getClass().isArray()) {
+                return path.in(Arrays.asList((Object[]) value));
+            }
         }
         throw new IllegalArgumentException("Unsupported operator: " + operator);
     }
@@ -343,15 +352,20 @@ public class MovieServiceBean  implements MovieServiceRemote {
     @SuppressWarnings("unchecked")
     private Predicate numberOp(CriteriaBuilder cb, Path<?> path, Object value, String op) {
         Number num = (Number) value;
+        @SuppressWarnings("unchecked")
         Path<? extends Number> n = (Path<? extends Number>) path;
 
-        return switch (op) {
-            case "gt" -> cb.gt(n, num);
-            case "lt" -> cb.lt(n, num);
-            case "gte" -> cb.ge(n, num);
-            case "lte" -> cb.le(n, num);
-            default -> null;
-        };
+        if ("gt".equals(op)) {
+            return cb.gt(n, num);
+        } else if ("lt".equals(op)) {
+            return cb.lt(n, num);
+        } else if ("gte".equals(op)) {
+            return cb.ge(n, num);
+        } else if ("lte".equals(op)) {
+            return cb.le(n, num);
+        } else {
+            return null;
+        }
     }
 
 
