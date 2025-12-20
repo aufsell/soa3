@@ -18,6 +18,7 @@ services:
     container_name: payara-2
     restart: unless-stopped
     environment:
+      - SERVICE_NAME=ejb
       - SERVICE_ID=payara-2
       - SERVICE_ADDRESS=payara-2
       - SERVICE_PORT=8080
@@ -34,7 +35,7 @@ services:
     restart: unless-stopped
     environment:
       - SERVICE_ID=payara-1
-      - SERVICE_ADDRESS=payara-1
+      - SERVICE_ADDRESS=172.20.0.23
       - SERVICE_PORT=8080
     depends_on:
       - consul
@@ -42,6 +43,23 @@ services:
       - "4848:4848"
     networks:
       app-net:
+        ipv4_address: 172.20.0.23
+
+  payara-3:
+    image: payara/server-full:5.2022.5-jdk11
+    container_name: payara-3
+    restart: unless-stopped
+    environment:
+      - SERVICE_ID=payara-3
+      - SERVICE_ADDRESS=172.20.0.24
+      - SERVICE_PORT=8080
+    depends_on:
+      - consul
+    ports:
+      - "4850:4848"
+    networks:
+      app-net:
+        ipv4_address: 172.20.0.24
 
   postgres:
     image: postgres:16-alpine
@@ -90,6 +108,7 @@ services:
       - config-server
       - eureka-server
       - consul
+
     networks:
       app-net:
         ipv4_address: 172.20.0.11
@@ -123,3 +142,6 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
+
+
+
