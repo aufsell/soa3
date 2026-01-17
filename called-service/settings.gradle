@@ -2,3 +2,4 @@ rootProject.name = 'called-service'
 
 include 'called-ejb'
 include 'called-web'
+include 'called-soap-war'

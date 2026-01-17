@@ -1,0 +1,3 @@
+create-jdbc-connection-pool --datasourceclassname org.postgresql.ds.PGSimpleDataSource --restype javax.sql.DataSource --property user=called_user:password=called_pass:serverName=called-postgres:portNumber=5432:databaseName=called_db calledPool
+create-jdbc-resource --connectionpoolid calledPool jdbc/calledDS
+deploy /opt/payara/deploy/called-ejb.jar

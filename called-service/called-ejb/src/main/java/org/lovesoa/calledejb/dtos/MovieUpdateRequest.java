@@ -3,6 +3,9 @@ package org.lovesoa.calledejb.dtos;
 import lombok.*;
 
 import javax.validation.constraints.*;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 
 
 @Data
@@ -10,6 +13,8 @@ import javax.validation.constraints.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class MovieUpdateRequest {
 
     @NotBlank

@@ -36,7 +36,8 @@ public class MovieServiceBean  implements MovieServiceRemote {
     @Transactional
     public MovieResponseDTO createMovie(MovieCreateRequest request){
 
-        if (request.getId() < 1) {
+        // ID is auto-generated, skip the check for null
+        if (request.getId() != null && request.getId() < 1) {
             throw new BadRequestException("id must be >= 1");
         }
 

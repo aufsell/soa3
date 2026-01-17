@@ -4,24 +4,23 @@ plugins {
 
 dependencies {
   compileOnly 'javax:javaee-api:8.0'
-}
-dependencies {
+  compileOnly 'javax.xml.bind:jaxb-api:2.3.1'
+  compileOnly 'javax.jws:javax.jws-api:1.1'
+  compileOnly 'javax.xml.ws:jaxws-api:2.3.1'
   implementation("io.jsonwebtoken:jjwt-api:0.11.5")
   implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.2")
   implementation("org.mindrot:jbcrypt:0.4")
   runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
   runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
-  compileOnly 'javax:javaee-api:8.0'
   implementation 'org.postgresql:postgresql:42.7.2'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
 
   compileOnly ('org.projectlombok:lombok:1.18.32')
   annotationProcessor ('org.projectlombok:lombok:1.18.32')
 
   testCompileOnly ('org.projectlombok:lombok:1.18.32')
   testAnnotationProcessor ('org.projectlombok:lombok:1.18.32')
-
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
 
 }
 jar {

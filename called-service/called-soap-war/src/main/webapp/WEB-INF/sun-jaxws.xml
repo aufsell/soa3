@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoints xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime" version="2.0">
+    
+    <endpoint
+        name="MovieService"
+        implementation="org.lovesoa.calledsoap.MovieSoapEndpoint"
+        url-pattern="/MovieService"/>
+    
+    <endpoint
+        name="AuthService"
+        implementation="org.lovesoa.calledsoap.AuthSoapEndpoint"
+        url-pattern="/AuthService"/>
+        
+</endpoints>

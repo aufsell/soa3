@@ -132,6 +132,19 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/opt/certs/Caller/caller-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12
 
+  called-adapter:
+    build: ./spring-cloud/called-adapter
+    container_name: called-adapter
+    restart: unless-stopped
+    depends_on:
+      - payara-2
+    ports:
+      - "8090:8090"
+    networks:
+      app-net:
+    environment:
+      - SOAP_SERVICE_URL=http://payara-2:8080
+
 volumes:
   payara-domain:
   pgdata:

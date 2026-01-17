@@ -36,8 +36,8 @@ spring:
           predicates:
             - Path=/caller/**
 
-        - id: payara
-          uri: http://called-service.service.consul:8080
+        - id: called-adapter
+          uri: http://called-adapter:8090
           predicates:
             - Path=/called/**
       globalcors:

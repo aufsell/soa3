@@ -1,0 +1,24 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: called-adapter
+  cloud:
+    consul:
+      enabled: false
+    discovery:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+soap:
+  service:
+    url: http://payara-2:8080
+
+logging:
+  level:
+    root: INFO
+    org.lovesoa: DEBUG
