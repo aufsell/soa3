@@ -12,7 +12,7 @@ import javax.ejb.Startup;
         className = "org.postgresql.ds.PGSimpleDataSource",
         user = "called_user",
         password = "called_pass",
-        url = "jdbc:postgresql://postgres:5432/called_db"
+        url = "jdbc:postgresql://called-postgres:5432/called_db"
 )
 public class DataSourceConfig {
 }

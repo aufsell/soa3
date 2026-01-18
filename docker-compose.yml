@@ -24,13 +24,15 @@ services:
       - SERVICE_PORT=8080
     depends_on:
       - consul
+      - postgres
     ports:
       - "4949:4848"
+      - "8080:8080"
     networks:
       app-net:
 
   payara-1:
-    image: payara/server-full:5.2022.5-jdk11
+    build: ./payara1
     container_name: payara-1
     restart: unless-stopped
     environment:
@@ -39,8 +41,10 @@ services:
       - SERVICE_PORT=8080
     depends_on:
       - consul
+      - payara-2
     ports:
       - "4848:4848"
+      - "8081:8080"
     networks:
       app-net:
         ipv4_address: 172.20.0.23

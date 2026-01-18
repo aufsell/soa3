@@ -8,3 +8,9 @@ COPY jackson-annotations-2.17.2.jar /opt/payara/appserver/glassfish/domains/doma
 COPY jjwt-api-0.11.5.jar /opt/payara/appserver/glassfish/domains/domain1/lib/
 COPY jjwt-impl-0.11.5.jar /opt/payara/appserver/glassfish/domains/domain1/lib/
 COPY jjwt-jackson-0.11.5.jar /opt/payara/appserver/glassfish/domains/domain1/lib/
+
+# Copy post-boot commands to enable EJB HTTP Invoker
+COPY post-boot-commands.asadmin /opt/payara/config/post-boot-commands.asadmin
+
+# Copy only EJB module for autodeploy (EJB beans server)
+COPY called-ejb.jar /opt/payara/appserver/glassfish/domains/domain1/autodeploy/

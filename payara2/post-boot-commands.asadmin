@@ -1,0 +1,2 @@
+# Enable EJB HTTP Invoker for remote EJB access
+set-ejb-invoker-configuration --enabled=true --securityenabled=false --endpoint=/ejb-invoker

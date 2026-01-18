@@ -16,6 +16,11 @@ dependencies {
       exclude group: 'org.glassfish.jersey.inject', module: 'jersey-hk2'
       exclude group: 'org.glassfish.jersey.media', module: 'jersey-media-json-binding'
     }
+    
+    // SOAP/JAXB dependencies
+    compileOnly 'javax.xml.bind:jaxb-api:2.3.1'
+    compileOnly 'javax.xml.ws:jaxws-api:2.3.1'
+    compileOnly 'javax.jws:javax.jws-api:1.1'
 }
 
 war {
