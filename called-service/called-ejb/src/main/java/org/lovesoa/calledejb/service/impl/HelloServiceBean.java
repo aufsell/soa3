@@ -8,7 +8,7 @@ import javax.ejb.Stateless;
 public class HelloServiceBean implements HelloServiceRemote {
     @Override
     public void healthCheck() {
-        System.out.println("HealtCheck на второй паяре");
+//        System.out.println("HealtCheck на второй паяре");
         // No operation
     }
 }

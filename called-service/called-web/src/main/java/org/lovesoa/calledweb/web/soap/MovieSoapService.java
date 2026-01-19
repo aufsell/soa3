@@ -136,7 +136,10 @@ public class MovieSoapService {
     ) throws SoapServiceException {
         try {
             RegisterRequest internal = SoapDtoConverter.toRegisterRequest(request);
-            AuthResponse result = authClient.register(internal);
+            System.out.println("REquest: " + request.getEmail() + " "+ request.getName() + " " + request.getPassword());
+            System.out.println("converterDTO: " +internal.getEmail() + " " + internal.getName() + " " + internal.getPassword());
+            RemoteAuthServiceClient client = new RemoteAuthServiceClient("payara-2");
+            AuthResponse result = client.register(internal);
             return SoapDtoConverter.toSoapAuthResponse(result);
         } catch (NamingException e) {
             throw new SoapServiceException("Failed to register: " + e.getMessage(), e);

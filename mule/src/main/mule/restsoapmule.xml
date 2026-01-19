@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/4.6/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/4.6/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/4.6/mule-ee.xsd">
+
+    <!-- HTTP Listener -->
+    <http:listener-config name="HTTP_Listener_config">
+        <http:listener-connection host="0.0.0.0" port="7777"/>
+    </http:listener-config>
+
+    <!-- SOAP backend -->
+    <http:request-config name="Movie_Service_SOAP_config">
+        <http:request-connection host="localhost" port="8081" protocol="HTTP"/>
+    </http:request-config>
+
+    <!-- ==================== Register Flow ==================== -->
+    <flow name="MovieRegisterProxy">
+        <http:listener config-ref="HTTP_Listener_config" path="api/v1/called/register" allowedMethods="POST"/>
+        <logger level="INFO" message="REST register request received: #[payload]"/>
+
+        <!-- JSON -> SOAP -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+var jsonPayload = read(payload, "application/json")
+output application/xml
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns tns http://soap.web.calledweb.lovesoa.org/
+---
+{
+    soapenv#Envelope: {
+        soapenv#Header: {},
+        soapenv#Body: {
+            tns#register: {
+                request: {
+                    email: jsonPayload.email,
+                    password: jsonPayload.password,
+                    name: jsonPayload.name
+                }
+            }
+        }
+    }
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="SOAP Register Request: #[payload]"/>
+
+        <!-- HTTP Request to Payara -->
+        <http:request config-ref="Movie_Service_SOAP_config" path="/called/MovieWebService" method="POST">
+            <http:headers><![CDATA[#[{'Content-Type':'text/xml; charset=UTF-8','SOAPAction':""}]]]></http:headers>
+        </http:request>
+
+        <logger level="INFO" message="RAW SOAP Response: #[payload]"/>
+
+        <!-- SOAP -> JSON -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+output application/json
+ns S http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://soap.web.calledweb.lovesoa.org/
+---
+{
+    token: payload.S#Envelope.S#Body.ns2#registerResponse.authResponse.token
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="Register Response JSON: #[payload]"/>
+    </flow>
+
+    <!-- ==================== Login Flow ==================== -->
+    <flow name="MovieLoginProxy">
+        <http:listener config-ref="HTTP_Listener_config" path="api/v1/called/login" allowedMethods="POST"/>
+        <logger level="INFO" message="REST login request received: #[payload]"/>
+
+        <!-- JSON -> SOAP -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+var jsonPayload = read(payload, "application/json")
+output application/xml
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns tns http://soap.web.calledweb.lovesoa.org/
+---
+{
+    soapenv#Envelope: {
+        soapenv#Header: {},
+        soapenv#Body: {
+            tns#login: {
+                request: {
+                    email: jsonPayload.email,
+                    password: jsonPayload.password
+                }
+            }
+        }
+    }
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="SOAP Login Request: #[payload]"/>
+
+        <!-- HTTP Request to Payara -->
+        <http:request config-ref="Movie_Service_SOAP_config" path="/called/MovieWebService" method="POST">
+            <http:headers><![CDATA[#[{'Content-Type':'text/xml; charset=UTF-8','SOAPAction':""}]]]></http:headers>
+        </http:request>
+
+        <logger level="INFO" message="RAW SOAP Login Response: #[payload]"/>
+
+        <!-- SOAP -> JSON -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+output application/json
+ns S http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://soap.web.calledweb.lovesoa.org/
+---
+{
+    token: payload.S#Envelope.S#Body.ns2#loginResponse.authResponse.token
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="Login Response JSON: #[payload]"/>
+    </flow>
+
+    <!-- ==================== Get Movie By ID Flow ==================== -->
+    <flow name="GetMovieByIdProxy">
+        <http:listener config-ref="HTTP_Listener_config" path="api/v1/called/movies/{id}" allowedMethods="GET"/>
+        <logger level="INFO" message="REST getMovieById request, id: #[attributes.uriParams.id], Authorization: #[attributes.headers.authorization]"/>
+
+        <!-- Save auth header for later -->
+        <set-variable variableName="authHeader" value="#[attributes.headers.authorization]"/>
+        <set-variable variableName="movieId" value="#[attributes.uriParams.id]"/>
+
+        <!-- Build SOAP Request -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+output application/xml
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns tns http://soap.web.calledweb.lovesoa.org/
+---
+{
+    soapenv#Envelope: {
+        soapenv#Header: {},
+        soapenv#Body: {
+            tns#getMovieById: {
+                id: vars.movieId
+            }
+        }
+    }
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="SOAP GetMovieById Request: #[payload]"/>
+
+        <!-- HTTP Request to Payara with Authorization -->
+        <http:request config-ref="Movie_Service_SOAP_config" path="/called/MovieWebService" method="POST">
+            <http:headers><![CDATA[#[{'Content-Type':'text/xml; charset=UTF-8','SOAPAction':'','Authorization': vars.authHeader default ''}]]]></http:headers>
+        </http:request>
+
+        <logger level="INFO" message="RAW SOAP GetMovieById Response: #[payload]"/>
+
+        <!-- SOAP -> JSON -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+output application/json
+ns S http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://soap.web.calledweb.lovesoa.org/
+var movie = payload.S#Envelope.S#Body.ns2#getMovieByIdResponse.movie
+---
+{
+    id: movie.id,
+    name: movie.name,
+    coordinates: if (movie.coordinates != null) {
+        id: movie.coordinates.id,
+        x: movie.coordinates.x,
+        y: movie.coordinates.y
+    } else null,
+    oscarsCount: movie.oscarsCount,
+    genre: movie.genre,
+    mpaaRating: movie.mpaaRating,
+    operator: if (movie.operator != null) {
+        id: movie.operator.id,
+        name: movie.operator.name,
+        height: movie.operator.height,
+        weight: movie.operator.weight,
+        location: if (movie.operator.location != null) {
+            id: movie.operator.location.id,
+            x: movie.operator.location.x,
+            y: movie.operator.location.y,
+            z: movie.operator.location.z
+        } else null
+    } else null,
+    creationDate: movie.creationDate
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="GetMovieById Response JSON: #[payload]"/>
+    </flow>
+
+    <!-- ==================== Search Movies Flow ==================== -->
+    <flow name="SearchMoviesProxy">
+        <http:listener config-ref="HTTP_Listener_config" path="api/v1/called/movies/search" allowedMethods="POST"/>
+        <logger level="INFO" message="REST searchMovies request: #[payload], Authorization: #[attributes.headers.authorization]"/>
+
+        <!-- Save auth header and parse JSON -->
+        <set-variable variableName="authHeader" value="#[attributes.headers.authorization]"/>
+
+        <!-- Build SOAP Request -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+var jsonPayload = read(payload, "application/json")
+output application/xml
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns tns http://soap.web.calledweb.lovesoa.org/
+---
+{
+    soapenv#Envelope: {
+        soapenv#Header: {},
+        soapenv#Body: {
+            tns#searchMovies: {
+                request: {
+                    (filterName: jsonPayload.filters.name) if jsonPayload.filters.name?,
+                    (filterGenre: jsonPayload.filters.genre) if jsonPayload.filters.genre?,
+                    (filterMpaaRating: jsonPayload.filters.mpaaRating) if jsonPayload.filters.mpaaRating?,
+                    (filterOscarsCountMin: jsonPayload.filters.oscarsCountMin) if jsonPayload.filters.oscarsCountMin?,
+                    (filterOscarsCountMax: jsonPayload.filters.oscarsCountMax) if jsonPayload.filters.oscarsCountMax?,
+                    (sortFields: jsonPayload.sort map ((item) -> item)) if jsonPayload.sort?,
+                    page: jsonPayload.page default 0,
+                    size: jsonPayload.size default 20
+                }
+            }
+        }
+    }
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="SOAP SearchMovies Request: #[payload]"/>
+
+        <!-- HTTP Request to Payara with Authorization -->
+        <http:request config-ref="Movie_Service_SOAP_config" path="/called/MovieWebService" method="POST">
+            <http:headers><![CDATA[#[{'Content-Type':'text/xml; charset=UTF-8','SOAPAction':'','Authorization': vars.authHeader default ''}]]]></http:headers>
+        </http:request>
+
+        <logger level="INFO" message="RAW SOAP SearchMovies Response: #[payload]"/>
+
+        <!-- SOAP -> JSON -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[
+%dw 2.0
+output application/json
+ns S http://schemas.xmlsoap.org/soap/envelope/
+ns ns2 http://soap.web.calledweb.lovesoa.org/
+var pageResult = payload.S#Envelope.S#Body.ns2#searchMoviesResponse.pageResult
+var movies = pageResult.*content
+fun mapMovie(movie) = {
+    id: movie.id,
+    name: movie.name,
+    coordinates: if (movie.coordinates != null) {
+        id: movie.coordinates.id,
+        x: movie.coordinates.x,
+        y: movie.coordinates.y
+    } else null,
+    oscarsCount: movie.oscarsCount,
+    genre: movie.genre,
+    mpaaRating: movie.mpaaRating,
+    operator: if (movie.operator != null) {
+        id: movie.operator.id,
+        name: movie.operator.name,
+        height: movie.operator.height,
+        weight: movie.operator.weight,
+        location: if (movie.operator.location != null) {
+            id: movie.operator.location.id,
+            x: movie.operator.location.x,
+            y: movie.operator.location.y,
+            z: movie.operator.location.z
+        } else null
+    } else null,
+    creationDate: movie.creationDate
+}
+---
+{
+    content: if (movies != null and sizeOf(movies) > 0) (movies map mapMovie($)) else [],
+    page: pageResult.page,
+    size: pageResult.size,
+    totalElements: pageResult.totalElements,
+    totalPages: pageResult.totalPages
+}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" message="SearchMovies Response JSON: #[payload]"/>
+    </flow>
+
+</mule>
