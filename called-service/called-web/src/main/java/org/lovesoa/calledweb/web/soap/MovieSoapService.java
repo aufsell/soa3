@@ -2,6 +2,7 @@ package org.lovesoa.calledweb.web.soap;
 
 import org.lovesoa.calledejb.dtos.*;
 import org.lovesoa.calledweb.web.RemoteClient.RemoteAuthServiceClient;
+import org.lovesoa.calledweb.web.RemoteClient.RemoteHealthServiceClient;
 import org.lovesoa.calledweb.web.RemoteClient.RemoteMovieServiceClient;
 import org.lovesoa.calledweb.web.RemoteClient.RemotePingServiceClient;
 import org.lovesoa.calledweb.web.soap.dto.*;
@@ -12,6 +13,8 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.naming.NamingException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 
 /**
@@ -29,6 +32,10 @@ public class MovieSoapService {
     private final RemoteMovieServiceClient movieClient = new RemoteMovieServiceClient("payara-2");
     private final RemoteAuthServiceClient authClient = new RemoteAuthServiceClient("payara-2");
     private final RemotePingServiceClient pingClient = new RemotePingServiceClient("payara-2");
+    private final RemoteHealthServiceClient healthClient = new RemoteHealthServiceClient("payara-2");
+
+    @PersistenceContext(unitName = "calledPU")
+    private EntityManager em;
 
     // ========== Movie Operations ==========
 
@@ -155,6 +162,38 @@ public class MovieSoapService {
             return pingClient.ping();
         } catch (NamingException e) {
             throw new SoapServiceException("Failed to ping: " + e.getMessage(), e);
+        }
+    }
+
+    @WebMethod(operationName = "health")
+    @WebResult(name = "healthResponse")
+    public SoapHealthResponse health() {
+        boolean dbOk = checkDb();
+        boolean ejbOk = checkEjb();
+        boolean up = dbOk && ejbOk;
+
+        return new SoapHealthResponse(
+                up ? "UP" : "DOWN",
+                dbOk ? "UP" : "DOWN",
+                ejbOk ? "UP" : "DOWN"
+        );
+    }
+
+    private boolean checkDb() {
+        try {
+            em.createNativeQuery("SELECT 1").getSingleResult();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean checkEjb() {
+        try {
+            healthClient.healthCheck();
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
