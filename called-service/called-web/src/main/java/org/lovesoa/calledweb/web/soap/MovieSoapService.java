@@ -17,10 +17,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
 
-/**
- * SOAP Web Service for Movie operations.
- * This service calls EJB beans remotely through RemoteClient classes.
- */
+
 @WebService(
         name = "MovieService",
         serviceName = "MovieWebService",
@@ -37,13 +34,14 @@ public class MovieSoapService {
     @PersistenceContext(unitName = "calledPU")
     private EntityManager em;
 
-    // ========== Movie Operations ==========
+
 
     @WebMethod(operationName = "createMovie")
     @WebResult(name = "movie")
     public SoapMovieResponseDTO createMovie(
             @WebParam(name = "request") SoapMovieCreateRequest request
     ) throws SoapServiceException {
+        System.out.println("soap create Movie");
         try {
             MovieCreateRequest internal = SoapDtoConverter.toMovieCreateRequest(request);
             MovieResponseDTO result = movieClient.createMovie(internal);
@@ -58,6 +56,7 @@ public class MovieSoapService {
     public SoapMovieResponseDTO getMovieById(
             @WebParam(name = "id") Long id
     ) throws SoapServiceException {
+        System.out.println("soap get Movie");
         try {
             MovieResponseDTO result = movieClient.getMovieById(id);
             return SoapDtoConverter.toSoapMovieResponseDTO(result);
@@ -72,6 +71,7 @@ public class MovieSoapService {
             @WebParam(name = "id") Long id,
             @WebParam(name = "request") SoapMovieUpdateRequest request
     ) throws SoapServiceException {
+        System.out.println("soap update Movie");
         try {
             MovieUpdateRequest internal = SoapDtoConverter.toMovieUpdateRequest(request);
             MovieResponseDTO result = movieClient.singleMovieUpdate(id, internal);
@@ -86,6 +86,7 @@ public class MovieSoapService {
     public List<SoapMovieResponseDTO> updateMovies(
             @WebParam(name = "request") SoapMoviePutListRequest request
     ) throws SoapServiceException {
+        System.out.println("soap update Movies");
         try {
             MoviePutListDTORequest internal = SoapDtoConverter.toMoviePutListRequest(request);
             List<MovieResponseDTO> result = movieClient.updateMovies(internal);
@@ -99,6 +100,7 @@ public class MovieSoapService {
     public void deleteMovie(
             @WebParam(name = "id") Long id
     ) throws SoapServiceException {
+        System.out.println("soap delete Movie");
         try {
             movieClient.deleteMovie(id);
         } catch (NamingException e) {
@@ -111,6 +113,7 @@ public class MovieSoapService {
     public SoapPageDTO searchMovies(
             @WebParam(name = "request") SoapMovieSearchRequest request
     ) throws SoapServiceException {
+        System.out.println("soap search");
         try {
             MovieSearchRequest internal = SoapDtoConverter.toMovieSearchRequest(request);
             PageDTO<MovieResponseDTO> result = movieClient.searchMovies(internal);
@@ -120,13 +123,13 @@ public class MovieSoapService {
         }
     }
 
-    // ========== Auth Operations ==========
 
     @WebMethod(operationName = "login")
     @WebResult(name = "authResponse")
     public SoapAuthResponse login(
             @WebParam(name = "request") SoapLoginRequest request
     ) throws SoapServiceException {
+        System.out.println("soap login");
         try {
             LoginRequest internal = SoapDtoConverter.toLoginRequest(request);
             AuthResponse result = authClient.login(internal);
@@ -141,6 +144,7 @@ public class MovieSoapService {
     public SoapAuthResponse register(
             @WebParam(name = "request") SoapRegisterRequest request
     ) throws SoapServiceException {
+        System.out.println("soap register");
         try {
             RegisterRequest internal = SoapDtoConverter.toRegisterRequest(request);
             System.out.println("REquest: " + request.getEmail() + " "+ request.getName() + " " + request.getPassword());
@@ -153,11 +157,11 @@ public class MovieSoapService {
         }
     }
 
-    // ========== Health Operations ==========
 
     @WebMethod(operationName = "ping")
     @WebResult(name = "result")
     public String ping() throws SoapServiceException {
+        System.out.println("soap ping");
         try {
             return pingClient.ping();
         } catch (NamingException e) {
@@ -168,6 +172,7 @@ public class MovieSoapService {
     @WebMethod(operationName = "health")
     @WebResult(name = "healthResponse")
     public SoapHealthResponse health() {
+        System.out.println("soap healthcheck");
         boolean dbOk = checkDb();
         boolean ejbOk = checkEjb();
         boolean up = dbOk && ejbOk;

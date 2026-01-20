@@ -9,12 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Converter between SOAP DTOs and internal DTOs
- */
+
 public class SoapDtoConverter {
 
-    // ========== MovieCreateRequest conversion ==========
+
     
     public static MovieCreateRequest toMovieCreateRequest(SoapMovieCreateRequest soap) {
         if (soap == null) return null;
@@ -52,7 +50,7 @@ public class SoapDtoConverter {
         return request;
     }
 
-    // ========== MovieUpdateRequest conversion ==========
+
     
     public static MovieUpdateRequest toMovieUpdateRequest(SoapMovieUpdateRequest soap) {
         if (soap == null) return null;
@@ -89,8 +87,7 @@ public class SoapDtoConverter {
         return request;
     }
 
-    // ========== MovieSearchRequest conversion ==========
-    
+
     public static MovieSearchRequest toMovieSearchRequest(SoapMovieSearchRequest soap) {
         if (soap == null) return new MovieSearchRequest();
         
@@ -98,23 +95,21 @@ public class SoapDtoConverter {
         request.setPage(soap.getPage() != null ? soap.getPage() : 0);
         request.setSize(soap.getSize() != null ? soap.getSize() : 20);
         request.setSort(soap.getSortFields());
-        
-        // Convert filters
         Map<String, Object> filters = new HashMap<>();
         if (soap.getFilterName() != null) {
-            filters.put("name", soap.getFilterName());
+            filters.put("name[eq]", soap.getFilterName());
         }
         if (soap.getFilterGenre() != null) {
-            filters.put("genre", soap.getFilterGenre());
+            filters.put("genre[eq]", soap.getFilterGenre());
         }
         if (soap.getFilterMpaaRating() != null) {
-            filters.put("mpaaRating", soap.getFilterMpaaRating());
+            filters.put("mpaaRating[eq]", soap.getFilterMpaaRating());
         }
         if (soap.getFilterOscarsCountMin() != null) {
-            filters.put("oscarsCountMin", soap.getFilterOscarsCountMin());
+            filters.put("oscarsCount[gte]", soap.getFilterOscarsCountMin());
         }
         if (soap.getFilterOscarsCountMax() != null) {
-            filters.put("oscarsCountMax", soap.getFilterOscarsCountMax());
+            filters.put("oscarsCount[lte]", soap.getFilterOscarsCountMax());
         }
         if (!filters.isEmpty()) {
             request.setFilters(filters);
@@ -123,8 +118,6 @@ public class SoapDtoConverter {
         return request;
     }
 
-    // ========== MoviePutListRequest conversion ==========
-    
     public static MoviePutListDTORequest toMoviePutListRequest(SoapMoviePutListRequest soap) {
         if (soap == null) return null;
         
@@ -138,8 +131,6 @@ public class SoapDtoConverter {
         return request;
     }
 
-    // ========== Response conversion ==========
-    
     public static SoapMovieResponseDTO toSoapMovieResponseDTO(MovieResponseDTO dto) {
         if (dto == null) return null;
         
@@ -199,7 +190,6 @@ public class SoapDtoConverter {
         return soap;
     }
 
-    // ========== Auth conversion ==========
     
     public static LoginRequest toLoginRequest(SoapLoginRequest soap) {
         if (soap == null) return null;

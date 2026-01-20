@@ -48,44 +48,50 @@ public class GenresController {
             @PathVariable String fromGenre,
             @PathVariable String toGenre
     ) {
-        if (bearerToken == null || bearerToken.isBlank()) {
-            throw new IllegalArgumentException("Bearer-токен обязателен");
+        try{
+            if (bearerToken == null || bearerToken.isBlank()) {
+                throw new IllegalArgumentException("Bearer-токен обязателен");
+            }
+
+            String token = bearerToken.replace("Bearer ", "");
+
+            MovieSearchRequest fromRequest = new MovieSearchRequest();
+            fromRequest.setFilters(Map.of(
+                    "genre[eq]", fromGenre,
+                    "oscarsCount[gt]", 0
+            ));
+            List<MovieResponseDTO> fromMovies = moviesClient.searchMovies(fromRequest, token).getContent();
+
+            MovieSearchRequest toRequest = new MovieSearchRequest();
+            toRequest.setFilters(Map.of("genre[eq]", toGenre));
+            List<MovieResponseDTO> toMovies = moviesClient.searchMovies(toRequest, token).getContent();
+
+            System.out.println("Отправили и распарсили 2 селекта");
+            int totalOscars = fromMovies.stream().mapToInt(MovieResponseDTO::getOscarsCount).sum();
+
+            // Обнуляем все и объединяем списки в один
+            List<MovieResponseDTO> allMovies = new ArrayList<>();
+            fromMovies.forEach(m -> m.setOscarsCount(0));
+            allMovies.addAll(fromMovies);
+
+            Random random = new Random();
+            for (int i = 0; i < totalOscars; i++) {
+                if (toMovies.isEmpty()) break;
+                MovieResponseDTO randomMovie = toMovies.get(random.nextInt(toMovies.size()));
+                randomMovie.setOscarsCount(randomMovie.getOscarsCount() + 1);
+            }
+            allMovies.addAll(toMovies);
+
+            moviesClient.updateMoviesBatch(allMovies, token);
+
+            RedistributeRewardsResponseDTO response = new RedistributeRewardsResponseDTO();
+            response.setTransferredCount(totalOscars);
+            return response;
+        }catch (Exception e){
+            System.out.println("Ошибка + " + e.getMessage() + " " + e);
+            return null;
         }
 
-        String token = bearerToken.replace("Bearer ", "");
-
-        MovieSearchRequest fromRequest = new MovieSearchRequest();
-        fromRequest.setFilters(Map.of(
-                "genre[eq]", fromGenre,
-                "oscarsCount[gt]", 0
-        ));
-        List<MovieResponseDTO> fromMovies = moviesClient.searchMovies(fromRequest, token).getContent();
-
-        MovieSearchRequest toRequest = new MovieSearchRequest();
-        toRequest.setFilters(Map.of("genre[eq]", toGenre));
-        List<MovieResponseDTO> toMovies = moviesClient.searchMovies(toRequest, token).getContent();
-
-        System.out.println("Отправили и распарсили 2 селекта");
-        int totalOscars = fromMovies.stream().mapToInt(MovieResponseDTO::getOscarsCount).sum();
-
-        // Обнуляем все и объединяем списки в один
-        List<MovieResponseDTO> allMovies = new ArrayList<>();
-        fromMovies.forEach(m -> m.setOscarsCount(0));
-        allMovies.addAll(fromMovies);
-
-        Random random = new Random();
-        for (int i = 0; i < totalOscars; i++) {
-            if (toMovies.isEmpty()) break;
-            MovieResponseDTO randomMovie = toMovies.get(random.nextInt(toMovies.size()));
-            randomMovie.setOscarsCount(randomMovie.getOscarsCount() + 1);
-        }
-        allMovies.addAll(toMovies);
-
-        moviesClient.updateMoviesBatch(allMovies, token);
-
-        RedistributeRewardsResponseDTO response = new RedistributeRewardsResponseDTO();
-        response.setTransferredCount(totalOscars);
-        return response;
     }
 
 

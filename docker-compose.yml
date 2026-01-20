@@ -136,6 +136,20 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/opt/certs/Caller/caller-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12
 
+  mule:
+    build:
+      context: ./mule
+    container_name: mule
+    restart: unless-stopped
+    depends_on:
+      - payara-1
+    ports:
+      - "7777:7777"
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dhttp.port=7777 -Dsoap.host=payara-1 -Dsoap.port=8080
+    networks:
+      app-net:
+
 volumes:
   payara-domain:
   pgdata:

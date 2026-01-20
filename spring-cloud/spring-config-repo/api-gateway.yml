@@ -36,10 +36,12 @@ spring:
           predicates:
             - Path=/caller/**
 
-        - id: payara
-          uri: http://called-service.service.consul:8080
+        - id: mule-proxy
+          uri: http://mule:7777
           predicates:
             - Path=/called/**
+          filters:
+            - RewritePath=/called/api/(?<segment>.*), /api/v1/called/${segment}
       globalcors:
         add-to-simple-url-handler-mapping: true
         corsConfigurations:

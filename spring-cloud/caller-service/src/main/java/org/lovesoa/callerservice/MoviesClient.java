@@ -48,6 +48,27 @@ public class MoviesClient {
         this.objectMapper = new ObjectMapper();
     }
 
+    private Long parseLong(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).longValue();
+        if (value instanceof String) return Long.parseLong((String) value);
+        return null;
+    }
+
+    private Integer parseInt(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).intValue();
+        if (value instanceof String) return Integer.parseInt((String) value);
+        return null;
+    }
+
+    private Double parseDouble(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        if (value instanceof String) return Double.parseDouble((String) value);
+        return null;
+    }
+
     public MoviePageDTO searchMovies(MovieSearchRequest request, String bearerToken) {
         if (request.getFilters() == null) request.setFilters(new HashMap<>());
         if (request.getSort() == null) request.setSort(new ArrayList<>());
@@ -101,39 +122,37 @@ public class MoviesClient {
             List<MovieResponseDTO> movies = new ArrayList<>();
             for (Map<String, Object> item : contentList) {
                 MovieResponseDTO dto = new MovieResponseDTO();
-                dto.setId(item.get("id") != null ? ((Number) item.get("id")).longValue() : null);
+                dto.setId(parseLong(item.get("id")));
                 dto.setName((String) item.getOrDefault("name", ""));
                 dto.setGenre((String) item.getOrDefault("genre", ""));
-                dto.setOscarsCount(item.get("oscarsCount") != null ? ((Number) item.get("oscarsCount")).intValue() : 0);
+                dto.setOscarsCount(item.get("oscarsCount") != null ? parseInt(item.get("oscarsCount")) : 0);
                 dto.setCreationDate(item.getOrDefault("creationDate", null) != null ? item.get("creationDate").toString() : null);
                 dto.setMpaaRating(item.getOrDefault("mpaaRating", null) != null ? item.get("mpaaRating").toString() : null);
 
-                // координаты
                 Map<String, Object> coordinatesMap = (Map<String, Object>) item.get("coordinates");
                 if (coordinatesMap != null) {
                     CoordinatesDTO coords = new CoordinatesDTO();
-                    coords.setId(coordinatesMap.get("id") != null ? ((Number) coordinatesMap.get("id")).longValue() : null);
-                    coords.setX(coordinatesMap.get("x") != null ? ((Number) coordinatesMap.get("x")).doubleValue() : 0);
-                    coords.setY(coordinatesMap.get("y") != null ? ((Number) coordinatesMap.get("y")).doubleValue() : 0);
+                    coords.setId(parseLong(coordinatesMap.get("id")));
+                    coords.setX(parseDouble(coordinatesMap.get("x")));
+                    coords.setY(parseDouble(coordinatesMap.get("y")));
                     dto.setCoordinates(coords);
                 }
 
-                // оператор
                 Map<String, Object> operatorMap = (Map<String, Object>) item.get("operator");
                 if (operatorMap != null) {
                     OperatorDTO operator = new OperatorDTO();
-                    operator.setId(operatorMap.get("id") != null ? ((Number) operatorMap.get("id")).longValue() : null);
+                    operator.setId(parseLong(operatorMap.get("id")));
                     operator.setName((String) operatorMap.getOrDefault("name", ""));
-                    operator.setHeight(operatorMap.get("height") != null ? ((Number) operatorMap.get("height")).doubleValue() : null);
-                    operator.setWeight(operatorMap.get("weight") != null ? ((Number) operatorMap.get("weight")).doubleValue() : null);
+                    operator.setHeight(parseDouble(operatorMap.get("height")));
+                    operator.setWeight(parseDouble(operatorMap.get("weight")));
 
                     Map<String, Object> locationMap = (Map<String, Object>) operatorMap.get("location");
                     if (locationMap != null) {
                         LocationDTO loc = new LocationDTO();
-                        loc.setId(locationMap.get("id") != null ? ((Number) locationMap.get("id")).longValue() : null);
-                        loc.setX(locationMap.get("x") != null ? ((Number) locationMap.get("x")).intValue() : null);
-                        loc.setY(locationMap.get("y") != null ? ((Number) locationMap.get("y")).intValue() : null);
-                        loc.setZ(locationMap.get("z") != null ? ((Number) locationMap.get("z")).longValue() : null);
+                        loc.setId(parseLong(locationMap.get("id")));
+                        loc.setX(parseInt(locationMap.get("x")));
+                        loc.setY(parseInt(locationMap.get("y")));
+                        loc.setZ(parseLong(locationMap.get("z")));
                         operator.setLocation(loc);
                     }
                     dto.setOperator(operator);
@@ -142,11 +161,10 @@ public class MoviesClient {
                 movies.add(dto);
             }
 
-            // page info
-            int pageNumber = pageMap.get("number") != null ? ((Number) pageMap.get("number")).intValue() : 0;
-            int pageSize = pageMap.get("size") != null ? ((Number) pageMap.get("size")).intValue() : movies.size();
-            long totalElements = pageMap.get("totalElements") != null ? ((Number) pageMap.get("totalElements")).longValue() : movies.size();
-            int totalPages = (int) Math.ceil((double) totalElements / pageSize);
+            int pageNumber = pageMap.get("page") != null ? parseInt(pageMap.get("page")) : 0;
+            int pageSize = pageMap.get("size") != null ? parseInt(pageMap.get("size")) : movies.size();
+            long totalElements = pageMap.get("totalElements") != null ? parseLong(pageMap.get("totalElements")) : movies.size();
+            int totalPages = pageMap.get("totalPages") != null ? parseInt(pageMap.get("totalPages")) : (int) Math.ceil((double) totalElements / pageSize);
 
             SortDTO sortDTO = new SortDTO();
             sortDTO.setSorted(false);
@@ -186,19 +204,16 @@ public class MoviesClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(bearerToken);
 
-        // Преобразуем MovieResponseDTO -> MovieCreateRequest
         List<MovieCreateRequest> requests = new ArrayList<>();
         for (MovieResponseDTO movie : movies) {
             requests.add(buildMovieCreateRequest(movie, movie.getOscarsCount()));
         }
 
-        // Оборачиваем список в объект с полем "movies"
         MoviePutListDTORequest wrapper = new MoviePutListDTORequest();
         wrapper.setMovies(requests);
 
         HttpEntity<MoviePutListDTORequest> entity = new HttpEntity<>(wrapper, headers);
 
-        // Для отладки можно посмотреть JSON
         ObjectMapper mapper = new ObjectMapper();
         try {
             String json = mapper.writeValueAsString(wrapper);
@@ -221,7 +236,6 @@ public class MoviesClient {
     }
 
     private MovieCreateRequest buildMovieCreateRequest(MovieResponseDTO movie, int oscarsCount) {
-        // аналогично твоему Jakarta EE коду
         MovieCreateRequest request = new MovieCreateRequest();
         request.setId(movie.getId());
         request.setName(movie.getName());

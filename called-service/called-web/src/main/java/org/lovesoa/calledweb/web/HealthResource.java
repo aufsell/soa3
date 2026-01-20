@@ -55,10 +55,10 @@ public class HealthResource {
     }
 
     private boolean checkEjb() {
-        System.out.println("Попытка удалённого Healcheck");
+//        System.out.println("Попытка удалённого Healcheck");
         try {
             client.healthCheck();
-            System.out.println("Пинг успешен");
+//            System.out.println("Пинг успешен");
             return true;
         } catch (Exception e) {
             // Печатаем полное исключение для отладки
